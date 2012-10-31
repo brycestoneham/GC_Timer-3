@@ -7,7 +7,9 @@ Timer is a Generative Components node that will update an object at a specified 
 Installation and Requirements <a id="install" />
 -----------------------------
 
-Generative components 8.11.9.127 or above is required.
+Generative components 8.11.9.127 or above is required.  
+Generative Components is a free standalone application by Bentley Systems and can be dowloaded here  
+http://communities.bentley.com/products/betas/generativecomponents_beta_users/default.aspx
 
 
 Acknowledgements <a id="acknowledgements" />
