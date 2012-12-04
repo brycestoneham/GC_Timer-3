@@ -3,9 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero" x:Class="GC_FormTimer.TimerControl" 
-             xmlns:src="clr-namespace:GC_FormTimer"
-             mc:Ignorable="d" d:DesignWidth="159" Height="52.334">
+             xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero" x:Class="Cerver.Timer.TimerControl" 
+             xmlns:src="clr-namespace:Cerver.Timer"
+             mc:Ignorable="d" d:DesignWidth="159" Height="30">
     <UserControl.Resources>
         <Style x:Key="ButtonFocusVisual">
             <Setter Property="Control.Template">
@@ -60,8 +60,8 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid Margin="10,0,10,3.667">
-        <ToggleButton x:Name="btPlay" Focusable="False"  Content="" HorizontalAlignment="Left" Margin="6,2.672,0,0" VerticalAlignment="Top" Width="45" Height="44.96" Click="btPlay_Click" ToolTip="Start and stop the timer">
+    <Grid>
+        <ToggleButton x:Name="btPlay" Focusable="False"  Content="" HorizontalAlignment="Left" Margin="6,2.672,0,0" VerticalAlignment="Top" Width="45" Height="24" Click="btPlay_Click" IsChecked="{Binding PlayPressed}" ToolTip="Start and stop the timer"  >
             <ToggleButton.Style >
                 <Style TargetType="ToggleButton" >
                     <Style.Triggers>
@@ -87,7 +87,7 @@
                 </Style>
             </ToggleButton.Style>
         </ToggleButton>
-        <ToggleButton x:Name="btReset" Content="" HorizontalAlignment="Left" Margin="54.002,2.672,0,0" VerticalAlignment="Top" Width="45" Height="44.96" RenderTransformOrigin="-0.111,-0.667" Focusable="False" Checked="btReset_CheckedChanged" IsChecked="True" ToolTip="Reset the timer">
+        <ToggleButton x:Name="btReset" Content="" HorizontalAlignment="Left" Margin="54.002,2.672,0,0" VerticalAlignment="Top" Width="45" Height="24" RenderTransformOrigin="-0.111,-0.667" Focusable="False" IsChecked="{Binding ResetPressed}" ToolTip="Reset the timer" Click="btReset_CheckedChanged">
             <ToggleButton.Style >
                 <Style TargetType="ToggleButton" >
                     <Style.Triggers>
@@ -113,14 +113,9 @@
                 </Style>
             </ToggleButton.Style>
         </ToggleButton>
-        <Label Content="F:" HorizontalAlignment="Left" Margin="99.002,29.583,0,-2.872" VerticalAlignment="Top" Height="21.956" FontSize="10"/>
-        <Label x:Name="txtFrameNum" Content="0" HorizontalAlignment="Left" Margin="108.052,28.583,0,-7.209" VerticalAlignment="Top" Height="27.293" RenderTransformOrigin="1.624,0.87" FontWeight="Bold" Width="48.948"/>
-        <Button x:Name="btFloat" Content="" Focusable="False" HorizontalAlignment="Left" Margin="104.002,2.672,0,0" VerticalAlignment="Top" Width="24" Height="24" Click="Button_Click_1" Style="{DynamicResource ButtonStyle1}" ToolTip="open timer controls in floating window" >
-            <Button.Background>
-                <ImageBrush ImageSource="Resources/newWindow.png"/>
-            </Button.Background>
-        </Button>
-        <TextBox x:Name="txtRemoteControl" HorizontalAlignment="Center" Height="48.667" TextWrapping="Wrap" Text="Remote Controls Open" VerticalAlignment="Center" Width="139" IsTabStop="False" IsHitTestVisible="False" Focusable="False" Opacity="0.85" Padding="6,12,1,1" Visibility="Hidden"/>
+        <Label Content="F:" HorizontalAlignment="Left" Margin="97.322,2.672,0,0" VerticalAlignment="Top" Height="26.264"/>
+        <Label x:Name="txtFrameNum"  HorizontalAlignment="Left" Margin="112.452,5.667,0,0" VerticalAlignment="Top" Height="21.005" RenderTransformOrigin="1.624,0.87" FontWeight="Bold" Width="37.686" FontSize="10" Content="{Binding frameNum}"  />
+        
     </Grid>
     
 </UserControl>

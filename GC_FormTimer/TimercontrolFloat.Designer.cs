@@ -1,4 +1,4 @@
-﻿namespace GC_FormTimer
+﻿namespace Cerver.Timer
 {
     partial class TimercontrolFloat
     {
@@ -12,16 +12,6 @@
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         /// 
-        /*
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-        */
 
         #region Windows Form Designer generated code
 
@@ -32,7 +22,7 @@
         private void InitializeComponent()
         {
             this.elementHost1 = new System.Windows.Forms.Integration.ElementHost();
-            this.timerControl1 = new GC_FormTimer.TimerControl();
+            this.timerControl1 = new Cerver.Timer.TimerControl();
             this.SuspendLayout();
             // 
             // elementHost1

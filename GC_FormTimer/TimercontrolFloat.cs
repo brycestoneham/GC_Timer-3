@@ -12,7 +12,7 @@ using Bentley.GenerativeComponents.UISupport;
 using Bentley.GenerativeComponents.Features;
 using Bentley.GenerativeComponents.Features.Specific;
 
-namespace GC_FormTimer
+namespace Cerver.Timer
 {
     public partial class TimercontrolFloat : AdapterWinForm
     {
@@ -52,14 +52,17 @@ namespace GC_FormTimer
             
             this.FormClosing += TimercontrolFloat_FormClosing;
 
-            //this.Name = nodeTimer.tmrName;
-            this.timerControl1.btFloat.Visibility = System.Windows.Visibility.Hidden;
             FrameCt = nodeTimer.frameCt;
             this.timerControl1.frameCt = nodeTimer.frameCt;
             this.timerControl1.txtFrameNum.Content = nodeTimer.frameCt.ToString();
             this.timerControl1.timeInt = nodeTimer.timeInt;
             this.timerControl1.timer.Interval = TimeSpan.FromMilliseconds( nodeTimer.timeInt);
             this.timerControl1.objs = nodeTimer.objs;
+
+            //resize the buttons for the bigger display
+            this.timerControl1.Height = 60;
+            this.timerControl1.btPlay.Height = 45;
+            this.timerControl1.btReset.Height = 45;
     
         }
 

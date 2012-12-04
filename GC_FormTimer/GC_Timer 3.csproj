@@ -8,7 +8,7 @@
     <ProjectGuid>{2096725F-5B9C-47E9-BC61-54583D5B05BF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GC_FormTimer</RootNamespace>
+    <RootNamespace>Cerver.Timer</RootNamespace>
     <AssemblyName>Timer2</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -36,7 +36,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>C:\Users\Robert\Documents\Bentley GenerativeComponents 08.11.09.138\WorkSpace\Projects\Examples\GC_Default\Assemblies\</OutputPath>
+    <OutputPath>C:\Users\Robert\Documents\Bentley GenerativeComponents 08.11.09.157\WorkSpace\Projects\Examples\GC_Default\Assemblies\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -78,6 +78,11 @@
       <HintPath>C:\Program Files (x86)\Bentley GC\GenerativeComponents\assemblies\Bentley.GenerativeComponents.ScriptEditor.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Bentley.GenerativeComponents.View, Version=8.9.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Bentley 08.11.09.141\GenerativeComponents\assemblies\Bentley.GenerativeComponents.View.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Bentley.GenerativeComponents.XceedHelpers">
       <HintPath>C:\Program Files (x86)\Bentley GC\GenerativeComponents\assemblies\Bentley.GenerativeComponents.XceedHelpers.dll</HintPath>
       <Private>False</Private>
@@ -85,11 +90,13 @@
     <Reference Include="Bentley.Geometry.2.0, Version=2.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\Bentley 08.11.09.135\GenerativeComponents\assemblies\ECFramework\Bentley.Geometry.2.0.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="bentley.interop.microstationdgn, Version=8.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>True</EmbedInteropTypes>
       <HintPath>C:\Program Files (x86)\Bentley 08.11.09.135\GenerativeComponents\assemblies\bentley.interop.microstationdgn.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="bentley.microstation">
       <HintPath>C:\Program Files (x86)\Bentley GC\GenerativeComponents\assemblies\bentley.microstation.dll</HintPath>
@@ -107,6 +114,7 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Drawing" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -121,12 +129,6 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TimercontrolFloat.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="TimercontrolFloat.Designer.cs">
-      <DependentUpon>TimercontrolFloat.cs</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -142,9 +144,6 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="TimercontrolFloat.resx">
-      <DependentUpon>TimercontrolFloat.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

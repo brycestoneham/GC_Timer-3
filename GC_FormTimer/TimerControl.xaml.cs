@@ -23,31 +23,24 @@ using Bentley.GenerativeComponents.GCScript;
 using Bentley.GenerativeComponents.MicroStation;
 using Bentley.GenerativeComponents.API;
 using Bentley.GenerativeComponents.GeneralPurpose.Wpf;
+using Bentley.GenerativeComponents.View.ControlPanel;
 
-using cerver.timer;
 
-namespace GC_FormTimer
+namespace Cerver.Timer
 {
     /// <summary>
-    /// Interaction logic for UserControl1.xaml
+    /// Interaction logic for timer controls
     /// </summary>
-    public partial class TimerControl : UserControl
+    public partial class TimerControl : UserControl , IControlPanelViewModelListener
     {
         
-        public bool rset = true;
-        public List<INode> GCobjs ;
-        public int tickCt;
-        public int frameCt = 0;
-        public double timeInt = 25;
-        public string tmrName;
-        private int frameRate;
-        private int prevTime = 0;
-        private int currentTime;
-        public DispatcherTimer timer;
-        public Feature[] objs;
-        public Timer2 thisNode;
 
-        private TimercontrolFloat tcf;
+        private int frameCt = 0;
+        private double timeInt = 25;
+        private DispatcherTimer timer;
+        private Feature[] objs;
+        private Timer thisNode;
+
         
         public TimerControl()
         {
@@ -56,42 +49,41 @@ namespace GC_FormTimer
             timer.Tick += gcTimer_Tick;
             timer.Interval = TimeSpan.FromMilliseconds(timeInt);
             this.DataContextChanged += NodeControl_DataContextChanged;
-            
-
+  
             InitializeComponent();
 
-            
         }
+        
+        void IControlPanelViewModelListener.OnViewModelSaysToStopEditing()
+        {
+            //not implimented
 
+        }
+       
+        // this is here because the controls are not valid untill the node has sucessfully generated. this is the event that gets triggered
         void NodeControl_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if(thisNode == null) thisNode = (Timer2)this.DataContext;
-            thisNode.Changed += thisNode_Changed;
-            thisNode.NodeClosing += thisNode_NodeClosing;
-            //tmrName = thisNode.Name;
+            if (thisNode == null)
+            {
+                thisNode = (Timer)this.DataContext;
+                thisNode.Changed += thisNode_Changed;
+                thisNode.NodeClosing += thisNode_NodeClosing;
+                updateGC();
+                
+            }
+            
         }
 
         void thisNode_NodeClosing(EventArgs e)
         {
             timer.Stop();
-            if (tcf != null)
-            {
-                tcf.Close();
-
-            }
         }
 
-        void thisNode_Changed(Timer2 m, EventArgs e)
+        void thisNode_Changed(Timer m, EventArgs e)
         {
             timeInt = thisNode.interval;
             timer.Interval = TimeSpan.FromMilliseconds(timeInt);
-            objs = thisNode.GCobjects;
-            if (tcf != null)
-            {
-                tcf.updateTimer(timeInt, objs);
-
-            }
-           
+            objs = thisNode.GCobjects;        
         }
 
         private void btPlay_Click(object sender, RoutedEventArgs e)
@@ -99,13 +91,25 @@ namespace GC_FormTimer
             if ((bool)btPlay.IsChecked)
             {
                 thisNode_Changed(thisNode, EventArgs.Empty);
-                if ((bool)this.btReset.IsChecked) btReset.IsChecked = false;
+                if ((bool)this.btReset.IsChecked)
+                {
+                    btReset.IsChecked = false;
+                }
                 timer.Start();
             }
             else
             {
                 timer.Stop();
             }
+
+            if (thisNode != null)
+            {
+                thisNode.PlayPressed = (bool)btPlay.IsChecked;
+                thisNode.ResetPressed = (bool)btReset.IsChecked;
+                thisNode.Reset = (bool)btReset.IsChecked;
+
+            }
+
         }
 
 
@@ -113,76 +117,61 @@ namespace GC_FormTimer
         {
             if ((bool)btReset.IsChecked)
             {
-                resetTrue();
-                //timerObj.UpdateNodeTree(false);
+                timer.Stop();
+                btPlay.IsChecked = false;
+                frameCt = 0;
             }
-            else
+
+            if (thisNode != null)
             {
-                rset = false;
-                //resetStatus.Text = "Reset: FALSE";
-               // timerObj.UpdateNodeTree(false);
-            }
-            updateGC();
-        }
 
-
-        private void gcTimer_Tick(object sender, EventArgs e)
-        {
-            if (System.Environment.TickCount > tickCt)
-            {
-                currentTime = System.Environment.TickCount;
-                tickCt = currentTime + timer.Interval.Milliseconds; 
-                
-                //////common
-                frameCt++;
-                txtFrameNum.Content = frameCt.ToString();
-                //get actual time
-                frameRate = currentTime - prevTime;
-                prevTime = currentTime;
-                //FrameRateTxt.Text = string.Format("Actual Time: {0} ms", frameRate);
-                //update
-                updateGC();
-                
-            }
-        }
-
-        private void resetTrue()
-        {
-            timer.Stop();
-            btPlay.IsChecked = false;
-            if(txtFrameNum != null) txtFrameNum.Content = "0";
-            rset = true;
-            if(frameCt>0)
-                updateGC();
-            frameCt = 0;
-        }
-
-        private void updateGC()
-        {
-           // timerObj.UpdateNodeTree();
-            if (objs != null)
-            {
                 GCTools.UserModel.Lock(GCTools.UserModel);
                 try
                 {
-                    APIHelper.UpdateNodeTree(objs);
-                    GCTools.SyncUpMicroStation();
+                    thisNode.frameNum = frameCt.ToString();
+                    thisNode.ResetPressed = (bool)btReset.IsChecked;
+                    thisNode.Reset = (bool)btReset.IsChecked;
+                    thisNode.UpdateNodeTree();
+               
+
                 }
                 finally
                 {
                     GCTools.UserModel.Unlock(GCTools.UserModel);
                 }
+                GCTools.SyncUpMicroStation();
                 
             }
 
         }
 
-       
 
-        private void FrameRateTxt_Click(object sender, EventArgs e)
+        private void gcTimer_Tick(object sender, EventArgs e)
+        {
+            frameCt++;
+            updateGC();
+        }
+
+        private void updateGC()
         {
 
+            GCTools.UserModel.Lock(GCTools.UserModel);
+            try
+            {
+                if (objs != null) APIHelper.UpdateNodeTree(objs);
+                thisNode.frameNum = frameCt.ToString();
+                thisNode.UpdateNodeTree();
+                
+            }
+            finally
+            {
+                GCTools.UserModel.Unlock(GCTools.UserModel);
+            }
+            GCTools.SyncUpMicroStation();
+
+
         }
+
         /////public///////////////////////////////
         public void StopTimer()
         {
@@ -193,48 +182,6 @@ namespace GC_FormTimer
             }
         }
 
-        public void resetTimer()
-        {
-            resetTrue();
-        }
-        public bool getResetState()
-        {
-            
-            return rset;
-        }
-
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-            if (tcf == null)
-            {
-                timer.Stop();
-                tcf = new TimercontrolFloat(this);
-                tcf.Show();
-                //tcf.FormClosing += tcf_FormClosed;
-                tcf.Disposed += tcf_Disposed;
-                
-                this.btFloat.IsEnabled = false;
-                this.btPlay.IsEnabled = false;
-                this.btReset.IsEnabled = false;
-                this.txtFrameNum.Content = "";
-                this.txtRemoteControl.Visibility = System.Windows.Visibility.Visible;
-            }
-            
-        }
-
- 
-        void tcf_Disposed(object sender, EventArgs e)
-        {
-            this.btFloat.IsEnabled = true;
-            this.btPlay.IsEnabled = true;
-            this.btReset.IsEnabled = true;
-            this.txtRemoteControl.Visibility = System.Windows.Visibility.Hidden;
-
-            this.frameCt = tcf.FrameCt;
-            this.txtFrameNum.Content = tcf.FrameCt.ToString();
-            tcf.Dispose();
-            tcf = null;
-        }
 
         
     }

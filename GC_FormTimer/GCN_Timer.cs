@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-
+using System.ComponentModel;
+using System.ServiceModel ;
 
 using Bentley.GenerativeComponents;
 using Bentley.GenerativeComponents.Features;
@@ -17,15 +18,16 @@ using Bentley.GenerativeComponents.MicroStation;
 using Bentley.GenerativeComponents.Nodes;
 using Bentley.Geometry;
 using Bentley.Interop.MicroStationDGN;
-using GC_FormTimer;
-using cerver.timer;
+using Cerver.Timer;
 
 //using Bentley.Wrapper;
 
-namespace cerver.timer
+namespace Cerver.Timer
 {
+
+
     [GCNamespace("cerver.timer",true)]
-    public class Timer2: Node
+    public class Timer : Node, IControlPanelShowableNode
     {
         // The purpose of this particular node type is to represent the sun in the sky, for
         // lighting purposes. More precisely, any instance of this node type serves as a
@@ -35,23 +37,22 @@ namespace cerver.timer
         // MicrostationConfiguration. Please be aware that such code is relevant only because
         // of the functionality of this particular node type. Your own node types, on the other
         // hand, will most likely not have any association with MicroStation, at all.
-        public event UpdateHandler Changed;
+        
+        
         public EventArgs e = null;
-        public delegate void UpdateHandler(Timer2 m, EventArgs e);
-
-        public event NodeClosingHandler NodeClosing;
+        public delegate void UpdateHandler(Timer m, EventArgs e);
         public delegate void NodeClosingHandler(EventArgs e);
         
-
-        public const string NameOfUpdateObject             = "ObjToUpdate";
-        public const string NameOfInterval =                  "UpdateInterval";
-
-        public const string NameOfDefaultTechnique              = "Default";
+        public event NodeClosingHandler NodeClosing;
+        public event UpdateHandler Changed;
+        
+        public const string NameOfUpdateObject              = "ObjToUpdate";
+        public const string NameOfInterval                  = "UpdateInterval";
+        public const string NameOfReset                     = "Reset";
+        public const string NameOfDefaultTechnique          = "Default";
      
-        static private readonly NodeGCType s_gcTypeOfAllInstances = (NodeGCType) GCTypeTools.GetGCType(typeof(Timer2));
+        static private readonly NodeGCType s_gcTypeOfAllInstances = (NodeGCType) GCTypeTools.GetGCType(typeof(Timer));
        
-
-
         static public NodeGCType GCTypeOfAllInstances
         {
             get { return s_gcTypeOfAllInstances; }
@@ -59,39 +60,40 @@ namespace cerver.timer
 
         static private void GCType_AddAdditionalMembersTo(GCType gcType, NativeNamespaceTranslator namespaceTranslator)
         {
+            
             // This method is called through reflection when this type's corresponding GCType is populated.
-            {
-                NodeTechnique method = gcType.AddDefaultNodeTechnique(NameOfDefaultTechnique, Default);
-                
-                method.AddArgumentDefinition(NameOfUpdateObject, typeof(Feature[]), "null", "The nodes to upadte with the timer" );
-                method.AddArgumentDefinition(NameOfInterval,  typeof(double), "25", "The update time in milliseconds");
-
-            }
+            NodeTechnique method = gcType.AddDefaultNodeTechnique(NameOfDefaultTechnique, Default);
+            
+            //inputs
+            method.AddArgumentDefinition(NameOfUpdateObject, typeof(Feature[]), "null", "The nodes to upadte with the timer" );
+            method.AddArgumentDefinition(NameOfInterval,  typeof(double), "25", "The update time in milliseconds");
+            //outputs
+            method.AddArgumentDefinition(NameOfReset, typeof(bool), "true", "The reset state (true/false)", NodePortRole.TechniqueOutputOnly);
 
         }
         
         static private NodeTechniqueResult Default(Node node, IGCEnvironment gcEnvironment, NameCatalog nameCatalog, NodeScopeUpdateReason updateReason)
         {
-            Timer2 tmr = (Timer2)node;
-            
+            Timer tmr = (Timer)node;
+                   
             if(tmr.Changed != null)
-                tmr.Changed(tmr, tmr.e); 
+                tmr.Changed(tmr, tmr.e);
+
             return NodeTechniqueResult.Success;
         }
 
-        public static void testFunc(string message)
-        {
-            System.Windows.MessageBox.Show(message);
-       
-        }
-        public void triggerChange(Timer2 tmr, EventArgs e)
+        public void triggerChange(Timer tmr, EventArgs e)
         {
             Changed(tmr, e);
         }
   
         // ======================================== end of static members ========================================
-        
 
+        public bool Reset
+        {
+            get { return ActiveNodeState.ResetProperty.GetNativeValue<bool>(); }
+            set { ActiveNodeState.ResetProperty.SetNativeValueAndInputExpression(value); }
+        }
         public double interval
         {
             get { return ActiveNodeState.UpdateIntervalProperty.GetNativeValue<double>(); }
@@ -105,7 +107,7 @@ namespace cerver.timer
         }
      
 
-        public Timer2
+        public Timer
         (
             NodeGCType  gcType,
             INodeScope  parentNodeScope,
@@ -119,15 +121,23 @@ namespace cerver.timer
 
         public override Type TypeOfCustomViewContent(NodeCustomViewContext context)  // INode.TypeOfCustomViewBody
         {
-            // The result can be any type that derives from a WPF FrameworkElement.
+            switch (context)
+            {
+                case NodeCustomViewContext.GraphNode: return typeof(TimerControl);  
+                case NodeCustomViewContext.ControlPanel: return typeof(TimerControl);  
+            }
+            Debug.Assert(false);
+            return null;
 
-            return typeof(TimerControl);
+   
         }
+       
         public override void Dispose()
         {
             NodeClosing(e);
             base.Dispose();
         }
+
 
         internal new NodeState ActiveNodeState
         {
@@ -141,12 +151,51 @@ namespace cerver.timer
 
 
 
+        // wpf bindings
+        private string m_frameNum;
+        private bool m_PlayPressed;
+        private bool m_resetPressed = true;
+        
+        
+        public string frameNum
+        {
+            get { return m_frameNum; }
+            set 
+            { 
+                m_frameNum = value;
+                OnPropertyChanged("frameNum");
+            }
+        }
+        
+        public bool PlayPressed
+        {
+            get { return m_PlayPressed; }
+            set
+            {
+                m_PlayPressed = value;
+                OnPropertyChanged("PlayPressed");
+            }
+        }
+
+        public bool ResetPressed
+        {
+            get { return m_resetPressed; }
+            set
+            {
+                m_resetPressed = value;
+                OnPropertyChanged("ResetPressed");
+            }
+        }
+
+        //end wpf bingings
+
         public new class NodeState: Node.NodeState
         {
             internal readonly NodeProperty UpdateObjectProperty;
             internal readonly NodeProperty UpdateIntervalProperty;
+            internal readonly NodeProperty ResetProperty;
 
-            internal protected NodeState(Timer2 parentNode, NodeScopeState parentNodeScopeState, NodeTechniqueDetermination initialActiveTechniqueDetermination)
+            internal protected NodeState(Timer parentNode, NodeScopeState parentNodeScopeState, NodeTechniqueDetermination initialActiveTechniqueDetermination)
                 : base(parentNode, parentNodeScopeState, initialActiveTechniqueDetermination)
             {
                 // This constructor is called when the parent node is created.
@@ -154,6 +203,7 @@ namespace cerver.timer
 
                 UpdateObjectProperty = AddProperty(NameOfUpdateObject);
                 UpdateIntervalProperty = AddProperty(NameOfInterval);
+                ResetProperty = AddProperty(NameOfReset);
 
             }
 
@@ -164,11 +214,12 @@ namespace cerver.timer
 
                 UpdateObjectProperty = GetProperty(NameOfUpdateObject);
                 UpdateIntervalProperty = GetProperty(NameOfInterval);
+                ResetProperty = GetProperty(NameOfReset);
             }
 
-            protected new Timer2 ParentNode
+            protected new Timer ParentNode
             {
-                get { return (Timer2)base.ParentNode; }
+                get { return (Timer)base.ParentNode; }
             }
 
             public override Node.NodeState Clone(NodeScopeState newParentNodeScopeState)
