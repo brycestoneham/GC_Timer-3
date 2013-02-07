@@ -133,10 +133,7 @@ namespace Bentley.GenerativeComponents.Nodes.Specific
             GCTools.UserModel.Lock(GCTools.UserModel);
             try
             {
-                if (objs != null) APIHelper.UpdateNodeTree(objs);
-              
-              //  thisNode.UpdateNodeTree();
-                
+                if (objs != null) APIHelper.UpdateNodeTree(objs); 
             }
             finally
             {

@@ -175,8 +175,7 @@ namespace Bentley.GenerativeComponents.Nodes.Specific
             { 
                 m_frameNum = value;
                 OnPropertyChanged("FrameCount");
-                API.APIHelper.UpdateNodeTree(new INode[1] { this });
-                //this.UpdateNodeTree();
+                this.UpdateNodeTree();
             }
         }
 
