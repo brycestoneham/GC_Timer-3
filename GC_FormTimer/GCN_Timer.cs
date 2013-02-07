@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -18,26 +19,17 @@ using Bentley.GenerativeComponents.MicroStation;
 using Bentley.GenerativeComponents.Nodes;
 using Bentley.Geometry;
 using Bentley.Interop.MicroStationDGN;
-using Cerver.Timer;
+
 
 //using Bentley.Wrapper;
 
-namespace Cerver.Timer
+namespace Bentley.GenerativeComponents.Nodes.Specific
 {
 
 
-    [GCNamespace("cerver.timer",true)]
-    public class Timer : Node, IControlPanelShowableNode
+    //[GCNamespace("Bentley.GC", true)]
+    public class Timer : Node// , IControlPanelShowableNode
     {
-        // The purpose of this particular node type is to represent the sun in the sky, for
-        // lighting purposes. More precisely, any instance of this node type serves as a
-        // "front end" to the sun object that's built into MicroStation.
-        //
-        // As such, you will see a lot of code herein that does things with a class named
-        // MicrostationConfiguration. Please be aware that such code is relevant only because
-        // of the functionality of this particular node type. Your own node types, on the other
-        // hand, will most likely not have any association with MicroStation, at all.
-        
         
         public EventArgs e = null;
         public delegate void UpdateHandler(Timer m, EventArgs e);
@@ -46,13 +38,17 @@ namespace Cerver.Timer
         public event NodeClosingHandler NodeClosing;
         public event UpdateHandler Changed;
         
+        //input
         public const string NameOfUpdateObject              = "ObjToUpdate";
         public const string NameOfInterval                  = "UpdateInterval";
+        //output
         public const string NameOfReset                     = "Reset";
+        public const string NameOfFrame                     = "Frame";
+        //teqniques
         public const string NameOfDefaultTechnique          = "Default";
      
         static private readonly NodeGCType s_gcTypeOfAllInstances = (NodeGCType) GCTypeTools.GetGCType(typeof(Timer));
-       
+
         static public NodeGCType GCTypeOfAllInstances
         {
             get { return s_gcTypeOfAllInstances; }
@@ -69,13 +65,16 @@ namespace Cerver.Timer
             method.AddArgumentDefinition(NameOfInterval,  typeof(double), "25", "The update time in milliseconds");
             //outputs
             method.AddArgumentDefinition(NameOfReset, typeof(bool), "true", "The reset state (true/false)", NodePortRole.TechniqueOutputOnly);
+            method.AddArgumentDefinition(NameOfFrame, typeof(int), "0", "The current frame", NodePortRole.TechniqueOutputOnly);
 
         }
         
         static private NodeTechniqueResult Default(Node node, IGCEnvironment gcEnvironment, NameCatalog nameCatalog, NodeScopeUpdateReason updateReason)
         {
             Timer tmr = (Timer)node;
-                   
+            tmr.Reset = tmr.m_resetPressed;
+            tmr.FrameCount = tmr.frameNum;
+
             if(tmr.Changed != null)
                 tmr.Changed(tmr, tmr.e);
 
@@ -94,6 +93,12 @@ namespace Cerver.Timer
             get { return ActiveNodeState.ResetProperty.GetNativeValue<bool>(); }
             set { ActiveNodeState.ResetProperty.SetNativeValueAndInputExpression(value); }
         }
+        public int FrameCount
+        {
+            get { return ActiveNodeState.frameProperty.GetNativeValue<int>(); }
+            set { ActiveNodeState.frameProperty.SetNativeValueAndInputExpression(value);}
+        }
+
         public double interval
         {
             get { return ActiveNodeState.UpdateIntervalProperty.GetNativeValue<double>(); }
@@ -106,14 +111,14 @@ namespace Cerver.Timer
             set { ActiveNodeState.UpdateObjectProperty.SetNativeValueAndInputExpression(value); }
         }
      
-
         public Timer
         (
-            NodeGCType  gcType,
-            INodeScope  parentNodeScope,
-            NamePath    namePath
+            NodeGCType gcType,
+            INodeScope parentNodeScope,
+            INameScope parentNameScope,
+            string initialBasicName
         )
-            : base(gcType, parentNodeScope, namePath)
+            : base(gcType, parentNodeScope, parentNameScope, initialBasicName)
         {
             Debug.Assert(gcType == s_gcTypeOfAllInstances);
 
@@ -121,52 +126,60 @@ namespace Cerver.Timer
 
         public override Type TypeOfCustomViewContent(NodeCustomViewContext context)  // INode.TypeOfCustomViewBody
         {
+            
             switch (context)
             {
                 case NodeCustomViewContext.GraphNode: return typeof(TimerControl);  
-                case NodeCustomViewContext.ControlPanel: return typeof(TimerControl);  
+                //case NodeCustomViewContext.ControlPanel: return typeof(TimerControl);  
             }
             Debug.Assert(false);
+             
             return null;
 
    
         }
-       
-        public override void Dispose()
+        
+        protected override void Dispose(bool disposing)
         {
-            NodeClosing(e);
-            base.Dispose();
+            if (disposing)
+            {
+                NodeClosing(e);
+            }
+            base.Dispose(disposing);
         }
+        
 
+        protected override Node.NodeState GetInitialNodeState(NodeScopeState parentNodeScopeState, string parentNodeInitialBasicName, NodeTechniqueDetermination nameOfInitiallyActiveTechnique)
+        {
+            return new Timer.NodeState(this, parentNodeScopeState, parentNodeInitialBasicName, nameOfInitiallyActiveTechnique);
+        }
+         
 
         internal new NodeState ActiveNodeState
         {
             get { return (NodeState) base.ActiveNodeState; }
         }
 
-        protected override Node.NodeState GetInitialNodeState(NodeScopeState parentNodeScopeState, NodeTechniqueDetermination nameOfInitiallyActiveTechnique)
-        {
-            return new NodeState(this, parentNodeScopeState, nameOfInitiallyActiveTechnique);
-        }
-
-
-
+        
+        #region WPF Binding
         // wpf bindings
-        private string m_frameNum;
+        private int m_frameNum;
         private bool m_PlayPressed;
         private bool m_resetPressed = true;
-        
-        
-        public string frameNum
+
+
+        public int frameNum
         {
             get { return m_frameNum; }
-            set 
+            set
             { 
                 m_frameNum = value;
-                OnPropertyChanged("frameNum");
+                OnPropertyChanged("FrameCount");
+                API.APIHelper.UpdateNodeTree(new INode[1] { this });
+                //this.UpdateNodeTree();
             }
         }
-        
+
         public bool PlayPressed
         {
             get { return m_PlayPressed; }
@@ -184,19 +197,23 @@ namespace Cerver.Timer
             {
                 m_resetPressed = value;
                 OnPropertyChanged("ResetPressed");
+                OnPropertyChanged("frameNum");
+                this.UpdateNodeTree();
             }
         }
 
-        //end wpf bingings
+        //end wpf bingings 
+        #endregion
 
         public new class NodeState: Node.NodeState
         {
             internal readonly NodeProperty UpdateObjectProperty;
             internal readonly NodeProperty UpdateIntervalProperty;
             internal readonly NodeProperty ResetProperty;
+            internal readonly NodeProperty frameProperty;
 
-            internal protected NodeState(Timer parentNode, NodeScopeState parentNodeScopeState, NodeTechniqueDetermination initialActiveTechniqueDetermination)
-                : base(parentNode, parentNodeScopeState, initialActiveTechniqueDetermination)
+            internal protected NodeState(Timer parentNode, NodeScopeState parentNodeScopeState, string parentNodeInitialBasicName, NodeTechniqueDetermination initialActiveTechniqueDetermination)
+                : base(parentNode, parentNodeScopeState, parentNodeInitialBasicName, initialActiveTechniqueDetermination)
             {
                 // This constructor is called when the parent node is created.
                 // To create each property, we call AddProperty (rather to GetProperty).
@@ -204,6 +221,7 @@ namespace Cerver.Timer
                 UpdateObjectProperty = AddProperty(NameOfUpdateObject);
                 UpdateIntervalProperty = AddProperty(NameOfInterval);
                 ResetProperty = AddProperty(NameOfReset);
+                frameProperty = AddProperty(NameOfFrame);
 
             }
 
@@ -215,6 +233,7 @@ namespace Cerver.Timer
                 UpdateObjectProperty = GetProperty(NameOfUpdateObject);
                 UpdateIntervalProperty = GetProperty(NameOfInterval);
                 ResetProperty = GetProperty(NameOfReset);
+                frameProperty = GetProperty(NameOfFrame);
             }
 
             protected new Timer ParentNode

@@ -3,8 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero" x:Class="Cerver.Timer.TimerControl" 
-             xmlns:src="clr-namespace:Cerver.Timer"
+             xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero" x:Class="Bentley.GenerativeComponents.Nodes.Specific.TimerControl" 
+            xmlns:src="clr-namespace:Bentley.GenerativeComponents.Nodes.Specific" 
              mc:Ignorable="d" d:DesignWidth="159" Height="30">
     <UserControl.Resources>
         <Style x:Key="ButtonFocusVisual">
@@ -87,7 +87,7 @@
                 </Style>
             </ToggleButton.Style>
         </ToggleButton>
-        <ToggleButton x:Name="btReset" Content="" HorizontalAlignment="Left" Margin="54.002,2.672,0,0" VerticalAlignment="Top" Width="45" Height="24" RenderTransformOrigin="-0.111,-0.667" Focusable="False" IsChecked="{Binding ResetPressed}" ToolTip="Reset the timer" Click="btReset_CheckedChanged">
+        <ToggleButton x:Name="btReset" Content="" HorizontalAlignment="Left" Margin="54.002,2.672,0,0" VerticalAlignment="Top" Width="45" Height="24" RenderTransformOrigin="-0.111,-0.667" Focusable="False" IsChecked="{Binding ResetPressed, Mode=TwoWay}"  ToolTip="Reset the timer" Click="btReset_CheckedChanged" >
             <ToggleButton.Style >
                 <Style TargetType="ToggleButton" >
                     <Style.Triggers>
@@ -113,9 +113,7 @@
                 </Style>
             </ToggleButton.Style>
         </ToggleButton>
-        <Label Content="F:" HorizontalAlignment="Left" Margin="97.322,2.672,0,0" VerticalAlignment="Top" Height="26.264"/>
-        <Label x:Name="txtFrameNum"  HorizontalAlignment="Left" Margin="112.452,5.667,0,0" VerticalAlignment="Top" Height="21.005" RenderTransformOrigin="1.624,0.87" FontWeight="Bold" Width="37.686" FontSize="10" Content="{Binding frameNum}"  />
-        
+
     </Grid>
     
 </UserControl>
